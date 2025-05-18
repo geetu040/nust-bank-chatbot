@@ -25,7 +25,10 @@ def prepare_vectors(paths, model_name='all-MiniLM-L6-v2', device='cpu', verbose=
         print(f"Encoding {len(docs)} documents...")
 
     embeddings = encode(docs, model_name=model_name, device=device)
-    vector_store = list(zip(docs, embeddings.tolist()))
+    vector_store = {
+		'docs': docs,
+		'vectors': embeddings.tolist()
+	}
 
     return vector_store
 
