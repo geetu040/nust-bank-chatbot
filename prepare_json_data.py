@@ -12,7 +12,8 @@ def extract_qa_from_json(path, verbose=False):
     data = data['categories']
     for sub_data in data:
         category = sub_data['category']
-        for sub_sub_data in tqdm(sub_data['questions']):
+        iterator = tqdm(sub_data['questions']) if verbose else sub_data['questions']
+        for sub_sub_data in iterator:
             q = Q_PROMPT.format(heading=category, question=sub_sub_data['question'])
             a = sub_sub_data['answer']
             q = clean_text(q)

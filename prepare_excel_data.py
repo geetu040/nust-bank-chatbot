@@ -14,10 +14,12 @@ def extract_qa_from_excel(path, verbose=False):
     if verbose:
         print(f"Found sheets: {sheetnames}")
 
-    for sheet_name in tqdm(sheetnames, desc="Processing sheets"):
+    sheetnames_iterator = tqdm(sheetnames, desc="Processing sheets") if verbose else sheetnames
+    for sheet_name in sheetnames_iterator:
         sheet = wb[sheet_name]
         rows = list(sheet.iter_rows())
-        for row in tqdm(rows, desc=f"Processing rows in {sheet_name}", leave=False):
+        rows_iterator = tqdm(rows, desc=f"Processing rows in {sheet_name}", leave=False) if verbose else rows
+        for row in rows_iterator:
             for cell in row:
                 if cell.value is None:
                     continue
