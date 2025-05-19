@@ -221,6 +221,9 @@ class Chatbot:
 
 
 if __name__ == "__main__":
+
+	# ---------------------------------------------
+
 	config = ChatbotConfig(
 		# chatbot_model_name="Qwen/Qwen3-0.6B",
 		chatbot_model_name="google/flan-t5-base",
@@ -229,12 +232,27 @@ if __name__ == "__main__":
 	)
 	chatbot = Chatbot(config)
 
+	# ---------------------------------------------
+
 	# question = "What are the available Liability Products & Services?"
 	# question = "What is NSA?"
 	# question = "What does PWRA stand for?"
 	# question = "What are the posssible account types in NSA?"
 	# question = "How do I delete my mobile banking account?"
 	# answer, meta = chatbot.query(question)
+
+	# print()
+	# print('------- Question -------')
+	# print(question)
+	# print()
+	# for k, v in meta.items():
+	# 	print("-------", k, "-------")
+	# 	print(v)
+	# 	print()
+	# print('------- Answer -------')
+	# print(answer)
+
+	# ---------------------------------------------
 
 	# new_doc = """What are the free services associated with PakWatan Remittance account?
 	# Free services include:
@@ -264,6 +282,7 @@ if __name__ == "__main__":
 	# print('------- Answer -------')
 	# print(answer)
 
+	# ---------------------------------------------
 
 	questions = [
 		"How do I delete my mobile banking account?",
@@ -280,3 +299,5 @@ if __name__ == "__main__":
 		print("------- Answer -------")
 		print(a)
 		print()
+
+	# ---------------------------------------------
