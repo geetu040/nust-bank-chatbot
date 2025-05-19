@@ -3,7 +3,7 @@ import json
 from tqdm import tqdm
 from openpyxl import load_workbook
 from openpyxl.utils import range_boundaries, column_index_from_string, get_column_letter
-from config import QUESTION_COLOR, ANSWER_SEP, QUESTION_SEP
+from config import QUESTION_COLOR, ANSWER_SEP, Q_PROMPT
 from utils import clean_text
 
 def extract_qa_from_excel(path, verbose=False):
@@ -48,7 +48,7 @@ def extract_qa_from_excel(path, verbose=False):
                 if len(answers) == 0:
                     continue
 
-                question = sheet_name + QUESTION_SEP + cell.value
+                question = Q_PROMPT.format(heading=sheet_name, question=cell.value)
                 question = clean_text(question)
                 answer = ANSWER_SEP.join(answers)
                 pairs[question] = answer

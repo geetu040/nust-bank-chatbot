@@ -1,3 +1,4 @@
 QUESTION_COLOR = "FF0070C0"	# fill color for questions in Excel sheet
-ANSWER_SEP = "\n"			# separator for multiple answers in a question
-QUESTION_SEP = "\n\n"		# separator for context and question in JSON
+ANSWER_SEP = ". "			# separator for multiple answers in a question
+Q_PROMPT = "({heading}) {question}"
+QA_PROMPT = """Question: {question}\nAnswer: {answer}"""

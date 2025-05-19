@@ -1,9 +1,8 @@
 import re
-
-QA_PROMPT = """Question: {question}\n\nAnswer: {answer}"""
+from config import QA_PROMPT
 
 def clean_text(text):
-    text = str(text).strip().lower()
+    text = str(text).strip()
     return text
 
 def prepare_document(question, answer):
