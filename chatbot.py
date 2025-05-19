@@ -90,6 +90,13 @@ class Chatbot:
 			faiss.write_index(self.index, index_path)
 
 
+	def add_document(self, document: str):
+		# Add a new document to the vector store
+		self.docs.append(document)
+		document_vector = self.embedding_model.encode([document])
+		self.index.add(document_vector)
+
+
 	def query(self, question):
 
 		# Step 1: Preprocess the question
@@ -161,8 +168,26 @@ if __name__ == "__main__":
 
 	# question = "What are the available Liability Products & Services?"
 	# question = "What is NSA?"
-	question = "What does PWRA stand for?"
+	# question = "What does PWRA stand for?"
 	# question = "What are the posssible account types in NSA?"
+	# answer, meta = chatbot.query(question)
+
+
+	new_doc = """What are the free services associated with PakWatan Remittance account?
+	Free services include:
+	- First Cheque Book of 25 Leaves*
+	- NUST Visa Debit Card Issuance* (annual and replacement fee would apply)
+	- Bankers Cheque Issuance
+	- Branch Online Cash Withdrawal/ Deposit (Online)
+	- Fund Transfer within NUST via branch (Online Transfer)
+	- Internet Banking
+	- SMS on digital transactions
+	- E-statements
+	* For Current Account only
+	"""
+	chatbot.add_document(new_doc)
+
+	question = "Which accounts are eligible for free services of PWRA?"
 	answer, meta = chatbot.query(question)
 
 	print()
