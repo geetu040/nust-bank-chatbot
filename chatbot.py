@@ -116,9 +116,9 @@ class Chatbot:
 		context = "\n\n".join(relevant_docs)
 		system_prompt = (
 			"You are a helpful, caring and knowledgeable assistant for a bank customer service. "
-			"Answer questions clearly, concisely, and using the provided context. "
-			"Yours answers should be well formated and easy to read. "
-			"If the answer is not in the context, say you don't know.\n\n"
+			"Answer questions clearly and concisely. "
+			"Use the context if provided to you to answer the question. "
+			"Your answers should be well formated and easy to read.\n\n"
 			"Context:\n" + context + "\n\n"
 		)
 		messages = [
@@ -157,12 +157,75 @@ class Chatbot:
 		return answer, meta
 
 
+	def multiple_queries(self, questions):
+
+		# Step 1: Preprocess the question
+		questions = [clean_text(question) for question in questions]
+
+		# Step 2: Encode the question
+		question_vector = self.embedding_model.encode(questions)
+
+		# Step 3: Search for relevant documents
+		D, I = self.index.search(question_vector, k=self.config.top_k)
+		relevant_docs = []
+		for i in I:
+			relevant_docs_i = []
+			for j in i:
+				relevant_docs_i.append(self.docs[j])
+			relevant_docs.append(relevant_docs_i)
+
+		# Step 4: Create the prompt
+		prompts = []
+		for question, relevant_docs_i in zip(questions, relevant_docs):
+			context = "\n\n".join(relevant_docs_i)
+			system_prompt = (
+				"You are a helpful, caring and knowledgeable assistant for a bank customer service. "
+				"Answer questions clearly and concisely. "
+				"Use the context if provided to you to answer the question. "
+				"Your answers should be well formated and easy to read.\n\n"
+				"Context:\n" + context + "\n\n"
+			)
+			messages = [
+				{"role": "system", "content": system_prompt},
+				{"role": "user", "content": question}
+			]
+			try:
+				prompt = self.tokenizer.apply_chat_template(
+					messages,
+					tokenize=False,
+					add_generation_prompt=True,
+					enable_thinking=self.config.enable_thinking # Switches between thinking and non-thinking modes. Default is True.
+				)
+			except:
+				prompt = system_prompt + question
+
+			prompts.append(prompt)
+
+
+		# Step 5: Generate answer
+		input_ids = self.tokenizer(prompts, return_tensors="pt", padding=True, truncation=True).input_ids
+		output_ids = self.llm.generate(
+			input_ids,
+			max_new_tokens=2000,
+		)
+
+		# Step 6: Decode response
+		answers = []
+		for i in range(len(output_ids)):
+			answer = self.tokenizer.decode(output_ids[i], skip_special_tokens=True)
+			if "think" in answer:
+				answer = answer[answer.index("</think>")+8:].strip()
+			answers.append(answer)
+
+		return answers
+
+
 if __name__ == "__main__":
 	config = ChatbotConfig(
-		chatbot_model_name="Qwen/Qwen3-0.6B",
-		# chatbot_model_name="google/flan-t5-base",
+		# chatbot_model_name="Qwen/Qwen3-0.6B",
+		chatbot_model_name="google/flan-t5-base",
 		# chatbot_model_name="microsoft/bitnet-b1.58-2B-4T",
-		use_cache=False,
+		# use_cache=False,
 	)
 	chatbot = Chatbot(config)
 
@@ -170,33 +233,50 @@ if __name__ == "__main__":
 	# question = "What is NSA?"
 	# question = "What does PWRA stand for?"
 	# question = "What are the posssible account types in NSA?"
+	# question = "How do I delete my mobile banking account?"
 	# answer, meta = chatbot.query(question)
 
+	# new_doc = """What are the free services associated with PakWatan Remittance account?
+	# Free services include:
+	# - First Cheque Book of 25 Leaves*
+	# - NUST Visa Debit Card Issuance* (annual and replacement fee would apply)
+	# - Bankers Cheque Issuance
+	# - Branch Online Cash Withdrawal/ Deposit (Online)
+	# - Fund Transfer within NUST via branch (Online Transfer)
+	# - Internet Banking
+	# - SMS on digital transactions
+	# - E-statements
+	# * For Current Account only
+	# """
+	# chatbot.add_document(new_doc)
 
-	new_doc = """What are the free services associated with PakWatan Remittance account?
-	Free services include:
-	- First Cheque Book of 25 Leaves*
-	- NUST Visa Debit Card Issuance* (annual and replacement fee would apply)
-	- Bankers Cheque Issuance
-	- Branch Online Cash Withdrawal/ Deposit (Online)
-	- Fund Transfer within NUST via branch (Online Transfer)
-	- Internet Banking
-	- SMS on digital transactions
-	- E-statements
-	* For Current Account only
-	"""
-	chatbot.add_document(new_doc)
+	# question = "Which accounts are eligible for free services of PWRA?"
+	# answer, meta = chatbot.query(question)
 
-	question = "Which accounts are eligible for free services of PWRA?"
-	answer, meta = chatbot.query(question)
+	# print()
+	# print('------- Question -------')
+	# print(question)
+	# print()
+	# for k, v in meta.items():
+	# 	print("-------", k, "-------")
+	# 	print(v)
+	# 	print()
+	# print('------- Answer -------')
+	# print(answer)
 
-	print()
-	print('------- Question -------')
-	print(question)
-	print()
-	for k, v in meta.items():
-		print("-------", k, "-------")
-		print(v)
+
+	questions = [
+		"How do I delete my mobile banking account?",
+		"What does PWRA stand for?",
+		"What is NSA?",
+		"What are the available Liability Products & Services?",
+	]
+	answers = chatbot.multiple_queries(questions)
+
+	for q, a in zip(questions, answers):
+		print("------- Question -------")
+		print(q)
 		print()
-	print('------- Answer -------')
-	print(answer)
+		print("------- Answer -------")
+		print(a)
+		print()
