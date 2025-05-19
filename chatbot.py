@@ -52,6 +52,8 @@ class Chatbot:
 		except:
 			self.llm = AutoModelForSeq2SeqLM.from_pretrained(self.config.chatbot_model_name)
 
+		self.llm = self.llm.to(self.config.device)
+
 		self.init_vector_store()
 
 
@@ -137,9 +139,9 @@ class Chatbot:
 
 
 		# Step 5: Generate answer
-		input_ids = self.tokenizer([prompt], return_tensors="pt", truncation=True).input_ids
+		inputs = self.tokenizer([prompt], return_tensors="pt", truncation=True).to(self.config.device)
 		output_ids = self.llm.generate(
-			input_ids,
+			**inputs,
 			max_new_tokens=1000,
 		)
 
@@ -203,9 +205,9 @@ class Chatbot:
 
 
 		# Step 5: Generate answer
-		input_ids = self.tokenizer(prompts, return_tensors="pt", padding=True, truncation=True).input_ids
+		inputs = self.tokenizer(prompts, return_tensors="pt", padding=True, truncation=True).to(self.config.device)
 		output_ids = self.llm.generate(
-			input_ids,
+			inputs,
 			max_new_tokens=2000,
 		)
 
@@ -225,8 +227,8 @@ if __name__ == "__main__":
 	# ---------------------------------------------
 
 	config = ChatbotConfig(
-		# chatbot_model_name="Qwen/Qwen3-0.6B",
-		chatbot_model_name="google/flan-t5-base",
+		chatbot_model_name="Qwen/Qwen3-0.6B",
+		# chatbot_model_name="google/flan-t5-base",
 		# chatbot_model_name="microsoft/bitnet-b1.58-2B-4T",
 		# use_cache=False,
 	)
@@ -234,23 +236,23 @@ if __name__ == "__main__":
 
 	# ---------------------------------------------
 
-	# question = "What are the available Liability Products & Services?"
-	# question = "What is NSA?"
-	# question = "What does PWRA stand for?"
-	# question = "What are the posssible account types in NSA?"
-	# question = "How do I delete my mobile banking account?"
-	# answer, meta = chatbot.query(question)
+	question = "What are the available Liability Products & Services?"
+	question = "What is NSA?"
+	question = "What does PWRA stand for?"
+	question = "What are the posssible account types in NSA?"
+	question = "How do I delete my mobile banking account?"
+	answer, meta = chatbot.query(question)
 
-	# print()
-	# print('------- Question -------')
-	# print(question)
-	# print()
-	# for k, v in meta.items():
-	# 	print("-------", k, "-------")
-	# 	print(v)
-	# 	print()
-	# print('------- Answer -------')
-	# print(answer)
+	print()
+	print('------- Question -------')
+	print(question)
+	print()
+	for k, v in meta.items():
+		print("-------", k, "-------")
+		print(v)
+		print()
+	print('------- Answer -------')
+	print(answer)
 
 	# ---------------------------------------------
 
@@ -284,20 +286,20 @@ if __name__ == "__main__":
 
 	# ---------------------------------------------
 
-	questions = [
-		"How do I delete my mobile banking account?",
-		"What does PWRA stand for?",
-		"What is NSA?",
-		"What are the available Liability Products & Services?",
-	]
-	answers = chatbot.multiple_queries(questions)
+	# questions = [
+	# 	"How do I delete my mobile banking account?",
+	# 	"What does PWRA stand for?",
+	# 	"What is NSA?",
+	# 	"What are the available Liability Products & Services?",
+	# ]
+	# answers = chatbot.multiple_queries(questions)
 
-	for q, a in zip(questions, answers):
-		print("------- Question -------")
-		print(q)
-		print()
-		print("------- Answer -------")
-		print(a)
-		print()
+	# for q, a in zip(questions, answers):
+	# 	print("------- Question -------")
+	# 	print(q)
+	# 	print()
+	# 	print("------- Answer -------")
+	# 	print(a)
+	# 	print()
 
 	# ---------------------------------------------
