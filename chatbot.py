@@ -20,6 +20,7 @@ class ChatbotConfig:
 		device='cpu',
 		use_cache=True,
 		enable_thinking=False,
+		top_k=3,
 	):
 		self.excel_data_path = excel_data_path
 		self.json_data_path = json_data_path
@@ -29,6 +30,7 @@ class ChatbotConfig:
 		self.device = device
 		self.use_cache = use_cache
 		self.enable_thinking = enable_thinking
+		self.top_k = top_k
 
 		os.makedirs(self.output_dir, exist_ok=True)
 
@@ -97,7 +99,7 @@ class Chatbot:
 		question_vector = self.embedding_model.encode([question])
 
 		# Step 3: Search for relevant documents
-		D, I = self.index.search(question_vector, k=5)
+		D, I = self.index.search(question_vector, k=self.config.top_k)
 		relevant_docs = []
 		for i in I[0]:
 			if i < len(self.docs):
@@ -116,12 +118,16 @@ class Chatbot:
 			{"role": "system", "content": system_prompt},
 			{"role": "user", "content": question}
 		]
-		prompt = self.tokenizer.apply_chat_template(
-			messages,
-			tokenize=False,
-			add_generation_prompt=True,
-			enable_thinking=self.config.enable_thinking # Switches between thinking and non-thinking modes. Default is True.
-		)
+		try:
+			prompt = self.tokenizer.apply_chat_template(
+				messages,
+				tokenize=False,
+				add_generation_prompt=True,
+				enable_thinking=self.config.enable_thinking # Switches between thinking and non-thinking modes. Default is True.
+			)
+		except:
+			prompt = system_prompt + question
+
 
 		# Step 5: Generate answer
 		input_ids = self.tokenizer([prompt], return_tensors="pt", truncation=True).input_ids
@@ -131,8 +137,9 @@ class Chatbot:
 		)
 
 		# Step 6: Decode response
-		generated_text = self.tokenizer.decode(output_ids[0], skip_special_tokens=True)
-		answer = generated_text
+		answer = self.tokenizer.decode(output_ids[0], skip_special_tokens=True)
+		if "think" in answer:
+			answer = answer[answer.index("</think>")+8:].strip()
 
 		# Step 7: Return response
 		meta = {
@@ -149,11 +156,13 @@ if __name__ == "__main__":
 		# chatbot_model_name="google/flan-t5-base",
 		# chatbot_model_name="microsoft/bitnet-b1.58-2B-4T",
 		use_cache=False,
-
 	)
 	chatbot = Chatbot(config)
 
-	question = "What are the available Liability Products & Services?"
+	# question = "What are the available Liability Products & Services?"
+	# question = "What is NSA?"
+	question = "What does PWRA stand for?"
+	# question = "What are the posssible account types in NSA?"
 	answer, meta = chatbot.query(question)
 
 	print()
