@@ -46,14 +46,14 @@ class Chatbot:
 			self.config.embedding_model_name,
 			device=self.config.device
 		)
-		self.tokenizer = AutoTokenizer.from_pretrained(self.config.chatbot_model_name)
+		self.tokenizer = AutoTokenizer.from_pretrained(self.config.chatbot_model_name, trust_remote_code=True)
 		if self.tokenizer.pad_token is None:
 			self.tokenizer.pad_token = self.tokenizer.eos_token
 
 		try:
-			self.llm = AutoModelForCausalLM.from_pretrained(self.config.chatbot_model_name)
+			self.llm = AutoModelForCausalLM.from_pretrained(self.config.chatbot_model_name, trust_remote_code=True)
 		except:
-			self.llm = AutoModelForSeq2SeqLM.from_pretrained(self.config.chatbot_model_name)
+			self.llm = AutoModelForSeq2SeqLM.from_pretrained(self.config.chatbot_model_name, trust_remote_code=True)
 
 		self.llm = self.llm.to(self.config.device)
 
