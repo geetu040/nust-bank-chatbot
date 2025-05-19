@@ -47,6 +47,9 @@ class Chatbot:
 			device=self.config.device
 		)
 		self.tokenizer = AutoTokenizer.from_pretrained(self.config.chatbot_model_name)
+		if self.tokenizer.pad_token is None:
+			self.tokenizer.pad_token = self.tokenizer.eos_token
+
 		try:
 			self.llm = AutoModelForCausalLM.from_pretrained(self.config.chatbot_model_name)
 		except:
