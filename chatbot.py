@@ -257,7 +257,6 @@ if __name__ == "__main__":
 	print('------- Answer -------')
 	print(answer)
 
-	# ---------------------------------------------
 
 	# new_doc = """What are the free services associated with PakWatan Remittance account?
 	# Free services include:
