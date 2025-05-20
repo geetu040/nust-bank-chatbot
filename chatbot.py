@@ -16,7 +16,7 @@ class ChatbotConfig:
 		json_data_path="data/funds_transfer_app_features_faq (1).json",
 		output_dir='temp/',
 		embedding_model_name='all-MiniLM-L6-v2',
-		chatbot_model_name='Qwen/Qwen3-0.6B',
+		chatbot_model_name='google/flan-t5-large',
 		device='cpu',
 		use_cache=True,
 		enable_thinking=False,
@@ -230,8 +230,8 @@ if __name__ == "__main__":
 	# ---------------------------------------------
 
 	config = ChatbotConfig(
-		chatbot_model_name="Qwen/Qwen3-0.6B",
-		# chatbot_model_name="google/flan-t5-base",
+		# chatbot_model_name="Qwen/Qwen3-0.6B",
+		chatbot_model_name="google/flan-t5-large",
 		# chatbot_model_name="microsoft/bitnet-b1.58-2B-4T",
 		# use_cache=False,
 	)
@@ -289,10 +289,11 @@ if __name__ == "__main__":
 	# ---------------------------------------------
 
 	# questions = [
-	# 	"How do I delete my mobile banking account?",
-	# 	"What does PWRA stand for?",
-	# 	"What is NSA?",
-	# 	"What are the available Liability Products & Services?",
+	# 	# "How do I delete my mobile banking account?",
+	# 	# "What does PWRA stand for?",
+	# 	# "What is NSA?",
+	# 	# "What are the available Liability Products & Services?",
+	# 	"What is the profit rate for PWRA?",
 	# ]
 	# answers = chatbot.multiple_queries(questions)
 
