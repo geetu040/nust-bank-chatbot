@@ -208,7 +208,7 @@ class Chatbot:
 
 
 		# Step 5: Generate answer
-		inputs = self.tokenizer(prompts, return_tensors="pt", padding=True, truncation=True).to(self.config.device)
+		inputs = self.tokenizer(prompts, return_tensors="pt", padding=True, truncation=True, padding_side='left').to(self.config.device)
 		output_ids = self.llm.generate(
 			**inputs,
 			max_new_tokens=2000,
