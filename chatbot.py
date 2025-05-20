@@ -158,6 +158,8 @@ class Chatbot:
 		answer = self.tokenizer.decode(output_ids[0], skip_special_tokens=True)
 		if "think" in answer:
 			answer = answer[answer.index("</think>")+8:].strip()
+		elif "assistant\n" in answer:
+			answer = answer[answer.rfind("assistant")+8:].strip()
 
 		# Step 7: Return response
 		meta = {
@@ -227,6 +229,8 @@ class Chatbot:
 			answer = self.tokenizer.decode(output_ids[i], skip_special_tokens=True)
 			if "think" in answer:
 				answer = answer[answer.index("</think>")+8:].strip()
+			elif "assistant\n" in answer:
+				answer = answer[answer.rfind("assistant")+8:].strip()
 			answers.append(answer)
 
 		return answers
