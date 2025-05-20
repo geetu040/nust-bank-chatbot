@@ -7,6 +7,7 @@ from utils import clean_text
 from prepare_excel_data import extract_qa_from_excel
 from prepare_json_data import extract_qa_from_json
 from utils import prepare_document
+from nltk.tokenize import word_tokenize
 
 
 class ChatbotConfig:
@@ -21,6 +22,8 @@ class ChatbotConfig:
 		use_cache=True,
 		enable_thinking=False,
 		top_k=3,
+		chunk_size=80,
+		overlap=20,
 	):
 		self.excel_data_path = excel_data_path
 		self.json_data_path = json_data_path
@@ -31,6 +34,8 @@ class ChatbotConfig:
 		self.use_cache = use_cache
 		self.enable_thinking = enable_thinking
 		self.top_k = top_k
+		self.chunk_size = chunk_size
+		self.overlap = overlap
 
 		os.makedirs(self.output_dir, exist_ok=True)
 
@@ -95,11 +100,26 @@ class Chatbot:
 			faiss.write_index(self.index, index_path)
 
 
+	def chunk_document(self, document: str):
+		tokens = word_tokenize(document)
+		chunks = []
+		start = 0
+		while start < len(tokens):
+			end = start + self.config.chunk_size
+			chunk = tokens[start:end]
+			chunks.append(" ".join(chunk))
+			if end >= len(tokens):
+				break
+			start += self.config.chunk_size - self.config.overlap
+		return chunks
+
+
 	def add_document(self, document: str):
-		# Add a new document to the vector store
-		self.docs.append(document)
-		document_vector = self.embedding_model.encode([document])
-		self.index.add(document_vector)
+		chunks = self.chunk_document(document)
+		for chunk in chunks:
+			self.docs.append(chunk)
+			document_vector = self.embedding_model.encode([chunk])
+			self.index.add(document_vector)
 
 
 	def query(self, question):
@@ -243,6 +263,7 @@ if __name__ == "__main__":
 	config = ChatbotConfig(
 		# chatbot_model_name="Qwen/Qwen3-0.6B",
 		chatbot_model_name="google/flan-t5-large",
+		# chatbot_model_name="google/flan-t5-base",
 		# chatbot_model_name="microsoft/bitnet-b1.58-2B-4T",
 		# use_cache=False,
 	)
@@ -250,40 +271,11 @@ if __name__ == "__main__":
 
 	# ---------------------------------------------
 
-	question = "What are the available Liability Products & Services?"
-	question = "What is NSA?"
-	question = "What does PWRA stand for?"
-	question = "What are the posssible account types in NSA?"
-	question = "How do I delete my mobile banking account?"
-	answer, meta = chatbot.query(question)
-
-	print()
-	print('------- Question -------')
-	print(question)
-	print()
-	for k, v in meta.items():
-		print("-------", k, "-------")
-		print(v)
-		print()
-	print('------- Answer -------')
-	print(answer)
-
-
-	# new_doc = """What are the free services associated with PakWatan Remittance account?
-	# Free services include:
-	# - First Cheque Book of 25 Leaves*
-	# - NUST Visa Debit Card Issuance* (annual and replacement fee would apply)
-	# - Bankers Cheque Issuance
-	# - Branch Online Cash Withdrawal/ Deposit (Online)
-	# - Fund Transfer within NUST via branch (Online Transfer)
-	# - Internet Banking
-	# - SMS on digital transactions
-	# - E-statements
-	# * For Current Account only
-	# """
-	# chatbot.add_document(new_doc)
-
-	# question = "Which accounts are eligible for free services of PWRA?"
+	# question = "What are the available Liability Products & Services?"
+	# question = "What is NSA?"
+	# question = "What does PWRA stand for?"
+	# question = "What are the posssible account types in NSA?"
+	# question = "How do I delete my mobile banking account?"
 	# answer, meta = chatbot.query(question)
 
 	# print()
@@ -299,21 +291,69 @@ if __name__ == "__main__":
 
 	# ---------------------------------------------
 
-	# questions = [
-	# 	"How do I delete my mobile banking account?",
-	# 	"What does PWRA stand for?",
-	# 	"What is NSA?",
-	# 	"What are the available Liability Products & Services?",
-	# 	"What is the profit rate for PWRA?",
-	# ]
-	# answers = chatbot.multiple_queries(questions)
+	# new_doc = """What are the free services associated with PakWatan Remittance account?
+	# Free services include:
+	# - First Cheque Book of 25 Leaves*
+	# - NUST Visa Debit Card Issuance* (annual and replacement fee would apply)
+	# - Bankers Cheque Issuance
+	# - Branch Online Cash Withdrawal/ Deposit (Online)
+	# - Fund Transfer within NUST via branch (Online Transfer)
+	# - Internet Banking
+	# - SMS on digital transactions
+	# - E-statements
+	# * For Current Account only
+	# """
+	# new_doc = """NUST Bank is a leading financial institution founded in 2003, headquartered in Islamabad,
+	# Pakistan. With over 80 branches nationwide, it offers a full range of banking services
+	# including retail banking, corporate financing, digital banking, and investment advisory.
+	# Key Highlights:
+	# ● Name: NUST Bank Ltd.
+	# ● Tagline: "Innovating Finance, Empowering Futures"
+	# ● CEO: Zara Qureshi
+	# ● Employees: 2,500+
+	# ● Assets: PKR 180 billion (as of 2024)
+	# ● Core Services: Savings & Current Accounts, Home & Auto Loans, SME Financing,
+	# Mobile Banking, and Digital Wallet
+	# ● Digital App: NUSTPay (supports bill payments, QR payments, fund transfers, and
+	# biometric login)
+	# ● Innovation: Launched Pakistan’s first AI-powered customer service chatbot in 2022
+	# ● Regulation: Licensed and regulated by the State Bank of Pakistan
+	# NUST Bank is known for its student-focused products, given its origins from the NUST
+	# community, and has a reputation for fast adoption of tech in financial services.
+	# """
+	# chatbot.add_document(new_doc)
 
-	# for q, a in zip(questions, answers):
-	# 	print("------- Question -------")
-	# 	print(q)
+	# question = "What is NUST Bank about?"
+	# answer, meta = chatbot.query(question)
+
+	# print()
+	# print('------- Question -------')
+	# print(question)
+	# print()
+	# for k, v in meta.items():
+	# 	print("-------", k, "-------")
+	# 	print(v)
 	# 	print()
-	# 	print("------- Answer -------")
-	# 	print(a)
-	# 	print()
+	# print('------- Answer -------')
+	# print(answer)
+
+	# ---------------------------------------------
+
+	questions = [
+		"How do I delete my mobile banking account?",
+		"What does PWRA stand for?",
+		"What is NSA?",
+		"What are the available Liability Products & Services?",
+		"What is the profit rate for PWRA?",
+	]
+	answers = chatbot.multiple_queries(questions)
+
+	for q, a in zip(questions, answers):
+		print("------- Question -------")
+		print(q)
+		print()
+		print("------- Answer -------")
+		print(a)
+		print()
 
 	# ---------------------------------------------
