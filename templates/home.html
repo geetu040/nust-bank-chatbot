@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BankBot - Your AI Banking Assistant</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      }
+
+      body {
+        background-color: #f9fafb;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Header */
+      .header {
+        background-color: #2563eb;
+        padding: 16px;
+        color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .header-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 64rem;
+        margin: 0 auto;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+      }
+
+      .logo-icon {
+        height: 32px;
+        width: 32px;
+        margin-right: 8px;
+      }
+
+      .logo-text {
+        font-size: 1.25rem;
+        font-weight: bold;
+      }
+
+      .upload-btn {
+        background-color: white;
+        color: #2563eb;
+        padding: 4px 12px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .upload-btn:hover {
+        background-color: #eff6ff;
+      }
+
+      .upload-icon {
+        height: 16px;
+        width: 16px;
+        margin-right: 4px;
+      }
+
+      /* Main content */
+      .main-container {
+        flex: 1;
+        max-width: 64rem;
+        width: 100%;
+        margin: 0 auto;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* Message area */
+      .message-area {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 16px;
+        border-radius: 8px;
+      }
+
+      /* Welcome intro */
+      .intro-card {
+        background-color: white;
+        padding: 24px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        margin-bottom: 16px;
+      }
+
+      .intro-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #1d4ed8;
+        margin-bottom: 12px;
+      }
+
+      .intro-subtitle {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 16px;
+      }
+
+      .intro-text {
+        color: #4b5563;
+        margin-bottom: 16px;
+      }
+
+      .intro-list {
+        list-style-type: disc;
+        padding-left: 24px;
+        margin-bottom: 16px;
+        color: #4b5563;
+      }
+
+      .intro-footer {
+        color: #1d4ed8;
+        font-weight: 500;
+        font-style: italic;
+      }
+
+      /* Chat messages */
+      .messages {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .message {
+        display: flex;
+      }
+
+      .message.user {
+        justify-content: flex-end;
+      }
+
+      .message.bot {
+        justify-content: flex-start;
+      }
+
+      .message-content {
+        max-width: 75%;
+        padding: 12px;
+        border-radius: 8px;
+      }
+
+      .user .message-content {
+        background-color: #2563eb;
+        color: white;
+        border-bottom-right-radius: 0;
+      }
+
+      .bot .message-content {
+        background-color: white;
+        border: 1px solid #e5e7eb;
+        border-bottom-left-radius: 0;
+      }
+
+      /* Input area */
+      .input-area {
+        background-color: white;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        padding: 8px;
+      }
+
+      .input-field {
+        flex: 1;
+        outline: none;
+        border: none;
+        padding: 0 8px;
+        color: #4b5563;
+      }
+
+      .send-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        border-radius: 50%;
+        padding: 8px;
+        color: #2563eb;
+      }
+
+      .send-btn:hover {
+        background-color: #eff6ff;
+      }
+
+      .send-btn:disabled {
+        color: #9ca3af;
+        cursor: not-allowed;
+      }
+
+      /* Modal */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        z-index: 50;
+        display: none;
+      }
+
+      .modal-overlay.show {
+        display: flex;
+      }
+
+      .modal {
+        background-color: white;
+        border-radius: 8px;
+        max-width: 28rem;
+        width: 100%;
+        padding: 24px;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .modal-title {
+        font-size: 1.125rem;
+        font-weight: bold;
+      }
+
+      .close-btn {
+        background: none;
+        border: none;
+        color: #6b7280;
+        cursor: pointer;
+      }
+
+      .close-btn:hover {
+        color: #374151;
+      }
+
+      .modal-text {
+        color: #4b5563;
+        margin-bottom: 16px;
+      }
+
+      .upload-area {
+        border: 2px dashed #d1d5db;
+        border-radius: 8px;
+        padding: 32px;
+        text-align: center;
+        margin-bottom: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .upload-area.dragover {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+      }
+
+      .file-icon {
+        height: 48px;
+        width: 48px;
+        margin: 0 auto 8px auto;
+        color: #9ca3af;
+      }
+
+      .upload-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 4px;
+      }
+
+      .upload-subtext {
+        font-size: 0.875rem;
+        color: #6b7280;
+      }
+
+      .upload-size-limit {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-top: 8px;
+      }
+
+      /* File list */
+      .file-list {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        max-height: 144px;
+        overflow-y: auto;
+        display: none;
+      }
+
+      .file-list.show {
+        display: block;
+      }
+
+      .file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px;
+        font-size: 0.875rem;
+      }
+
+      .file-item:not(:first-child) {
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .file-item.error {
+        background-color: #fef2f2;
+      }
+
+      .file-details {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        overflow: hidden;
+      }
+
+      .file-info {
+        overflow: hidden;
+      }
+
+      .file-name {
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .file-size {
+        color: #6b7280;
+        font-size: 0.75rem;
+      }
+
+      .file-error {
+        color: #ef4444;
+        font-size: 0.75rem;
+      }
+
+      .remove-file-btn {
+        color: #9ca3af;
+        background: none;
+        border: none;
+        cursor: pointer;
+      }
+
+      .remove-file-btn:hover {
+        color: #ef4444;
+      }
+
+      /* Status messages */
+      .status-message {
+        display: flex;
+        align-items: center;
+        font-size: 0.875rem;
+        margin-bottom: 16px;
+        display: none;
+      }
+
+      .status-message.show {
+        display: flex;
+      }
+
+      .status-error {
+        color: #ef4444;
+      }
+
+      .status-uploading {
+        color: #3b82f6;
+      }
+
+      .status-success {
+        color: #10b981;
+      }
+
+      .status-icon {
+        margin-right: 4px;
+      }
+
+      .spinner {
+        height: 16px;
+        width: 16px;
+        border: 2px solid transparent;
+        border-bottom-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Modal actions */
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+
+      .cancel-btn {
+        padding: 8px 16px;
+        color: #374151;
+        background: none;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .cancel-btn:hover {
+        background-color: #f3f4f6;
+      }
+
+      .process-btn {
+        padding: 8px 16px;
+        background-color: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .process-btn:hover {
+        background-color: #1d4ed8;
+      }
+
+      .process-btn:disabled {
+        background-color: #d1d5db;
+        color: #6b7280;
+        cursor: not-allowed;
+      }
+
+      /* Hidden file input */
+      #file-input {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          <i class="fas fa-robot logo-icon"></i>
+          <h1 class="logo-text">BankBot</h1>
+        </div>
+        <button id="upload-btn" class="upload-btn">
+          <i class="fas fa-upload upload-icon"></i>
+          Upload Documents
+        </button>
+      </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="main-container">
+      <!-- Message area -->
+      <div class="message-area">
+        <!-- Welcome intro card (initially visible) -->
+        <div id="intro-card" class="intro-card">
+          <h2 class="intro-title">Welcome to BankBot</h2>
+          <h3 class="intro-subtitle">Your AI-Powered Banking Assistant</h3>
+          <p class="intro-text">
+            BankBot provides instant answers to all your banking questions.
+            Powered by advanced AI technology, our assistant can help with:
+          </p>
+          <ul class="intro-list">
+            <li>Account information and banking procedures</li>
+            <li>Loan and mortgage inquiries</li>
+            <li>Investment options and financial planning</li>
+            <li>Banking policies and service details</li>
+            <li>And much more!</li>
+          </ul>
+          <p class="intro-text">
+            Simply type your question below and get accurate, helpful responses
+            in seconds. BankBot continuously learns from new information to give
+            you the most up-to-date answers about our banking services.
+          </p>
+          <p class="intro-text">
+            Need to share new information? Use the document upload feature to
+            contribute new content that BankBot can learn from.
+          </p>
+          <p class="intro-footer">
+            Your trusted banking partner, available 24/7.
+          </p>
+        </div>
+
+        <!-- Messages container (initially empty) -->
+        <div id="messages" class="messages"></div>
+      </div>
+
+      <!-- Input area -->
+      <div class="input-area">
+        <input
+          id="input-field"
+          type="text"
+          class="input-field"
+          placeholder="Ask BankBot a question..."
+        />
+        <button id="send-btn" class="send-btn" disabled>
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </main>
+
+    <!-- Upload documents modal (initially hidden) -->
+    <div id="modal-overlay" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Upload Banking Documents</h3>
+          <button id="close-modal-btn" class="close-btn">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <p class="modal-text">
+          Upload PDF documents containing banking policies, FAQs, or other
+          information to enhance BankBot's knowledge.
+        </p>
+
+        <!-- Upload area -->
+        <div id="upload-area" class="upload-area">
+          <i class="fas fa-file-pdf file-icon"></i>
+          <p class="upload-text">Drag and drop PDF files here</p>
+          <p class="upload-subtext">or click to browse</p>
+          <p class="upload-size-limit">Maximum size: 10MB per file</p>
+        </div>
+
+        <!-- File list (hidden until files are selected) -->
+        <div id="file-list" class="file-list"></div>
+
+        <!-- Status messages (hidden until relevant) -->
+        <div id="error-status" class="status-message status-error">
+          <i class="fas fa-exclamation-circle status-icon"></i>
+          <span>Please upload valid PDF files (under 10MB each)</span>
+        </div>
+
+        <div id="uploading-status" class="status-message status-uploading">
+          <div class="spinner"></div>
+          <span>Uploading and processing documents...</span>
+        </div>
+
+        <div id="success-status" class="status-message status-success">
+          <i class="fas fa-check-circle status-icon"></i>
+          <span>Documents successfully processed!</span>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="modal-actions">
+          <button id="cancel-btn" class="cancel-btn">Cancel</button>
+          <button id="process-btn" class="process-btn" disabled>
+            Upload & Process
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="file-input" multiple accept=".pdf,application/pdf" />
+
+    <script>
+      // DOM elements
+      const uploadBtn = document.getElementById("upload-btn");
+      const modalOverlay = document.getElementById("modal-overlay");
+      const closeModalBtn = document.getElementById("close-modal-btn");
+      const cancelBtn = document.getElementById("cancel-btn");
+      const inputField = document.getElementById("input-field");
+      const sendBtn = document.getElementById("send-btn");
+      const introCard = document.getElementById("intro-card");
+      const messagesContainer = document.getElementById("messages");
+      const uploadArea = document.getElementById("upload-area");
+      const fileInput = document.getElementById("file-input");
+      const fileList = document.getElementById("file-list");
+      const processBtn = document.getElementById("process-btn");
+      const errorStatus = document.getElementById("error-status");
+      const uploadingStatus = document.getElementById("uploading-status");
+      const successStatus = document.getElementById("success-status");
+
+      // State
+      let selectedFiles = [];
+      let uploadStatus = null;
+
+      // Event listeners
+      uploadBtn.addEventListener("click", openModal);
+      closeModalBtn.addEventListener("click", closeModal);
+      cancelBtn.addEventListener("click", closeModal);
+      inputField.addEventListener("input", toggleSendButton);
+      inputField.addEventListener("keypress", handleKeyPress);
+      sendBtn.addEventListener("click", handleSend);
+      uploadArea.addEventListener("click", openFileSelector);
+      uploadArea.addEventListener("dragenter", handleDrag);
+      uploadArea.addEventListener("dragover", handleDrag);
+      uploadArea.addEventListener("dragleave", handleDrag);
+      uploadArea.addEventListener("drop", handleDrop);
+      fileInput.addEventListener("change", handleFileChange);
+      processBtn.addEventListener("click", processUpload);
+
+      function toggleSendButton() {
+        sendBtn.disabled = inputField.value.trim() === "";
+      }
+
+      function handleKeyPress(e) {
+        if (e.key === "Enter") handleSend();
+      }
+
+      async function handleSend() {
+        if (inputField.value.trim() === "") return;
+
+        const messageText = inputField.value.trim();
+        addMessage(messageText, "user");
+        inputField.value = "";
+        toggleSendButton();
+
+        if (introCard.style.display !== "none") {
+          introCard.style.display = "none";
+        }
+
+        try {
+          const response = await fetch("/ask", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ question: messageText }),
+          });
+
+          const data = await response.json();
+          addMessage(data.answer, "bot");
+
+          const sources = data.sources.join("\n• ");
+          addMessage(`Sources:\n• ${sources}`, "bot");
+        } catch (error) {
+          console.error("Error:", error);
+          addMessage(
+            "Sorry, I'm having trouble connecting to the server. Please try again later.",
+            "bot"
+          );
+        }
+      }
+
+      function addMessage(text, sender) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${sender}`;
+
+        const messageContent = document.createElement("div");
+        messageContent.className = "message-content";
+        messageContent.textContent = text;
+
+        messageDiv.appendChild(messageContent);
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function openModal() {
+        modalOverlay.classList.add("show");
+        selectedFiles = [];
+        updateFileList();
+        resetStatus();
+      }
+
+      function closeModal() {
+        modalOverlay.classList.remove("show");
+      }
+
+      function handleDrag(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+          uploadArea.classList.add("dragover");
+        } else if (e.type === "dragleave") {
+          uploadArea.classList.remove("dragover");
+        }
+      }
+
+      function handleDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        uploadArea.classList.remove("dragover");
+
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          handleFiles(e.dataTransfer.files);
+        }
+      }
+
+      function openFileSelector() {
+        fileInput.click();
+      }
+
+      function handleFileChange(e) {
+        if (e.target.files && e.target.files.length > 0) {
+          handleFiles(e.target.files);
+          fileInput.value = null;
+        }
+      }
+
+      function handleFiles(files) {
+        const newFiles = Array.from(files);
+        let hasError = false;
+
+        newFiles.forEach((file) => {
+          const validationResult = validateFile(file);
+          const fileObj = {
+            file: file, // ✅ store the actual File object
+            name: file.name,
+            size: (file.size / 1024).toFixed(1) + " KB",
+            error: validationResult.valid ? null : validationResult.message,
+          };
+
+          if (!validationResult.valid) {
+            hasError = true;
+          }
+
+          selectedFiles.push(fileObj);
+        });
+
+        updateFileList();
+        updateStatus(hasError ? "error" : null);
+        updateProcessButton();
+      }
+
+      function validateFile(file) {
+        if (file.type !== "application/pdf") {
+          return { valid: false, message: "Only PDF files are accepted" };
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          return { valid: false, message: "File size exceeds 10MB limit" };
+        }
+        return { valid: true };
+      }
+
+      function updateFileList() {
+        fileList.innerHTML = "";
+
+        if (selectedFiles.length === 0) {
+          fileList.classList.remove("show");
+          return;
+        }
+
+        fileList.classList.add("show");
+
+        selectedFiles.forEach((file, index) => {
+          const fileItem = document.createElement("div");
+          fileItem.className = `file-item ${file.error ? "error" : ""}`;
+
+          const fileDetails = document.createElement("div");
+          fileDetails.className = "file-details";
+
+          const fileIcon = document.createElement("i");
+          fileIcon.className = "fas fa-file-pdf";
+          fileIcon.style.color = "#6b7280";
+
+          const fileInfo = document.createElement("div");
+          fileInfo.className = "file-info";
+
+          const fileName = document.createElement("p");
+          fileName.className = "file-name";
+          fileName.textContent = file.name;
+
+          fileInfo.appendChild(fileName);
+
+          if (file.error) {
+            const fileError = document.createElement("p");
+            fileError.className = "file-error";
+            fileError.textContent = file.error;
+            fileInfo.appendChild(fileError);
+          } else {
+            const fileSize = document.createElement("p");
+            fileSize.className = "file-size";
+            fileSize.textContent = file.size;
+            fileInfo.appendChild(fileSize);
+          }
+
+          fileDetails.appendChild(fileIcon);
+          fileDetails.appendChild(fileInfo);
+
+          const removeBtn = document.createElement("button");
+          removeBtn.className = "remove-file-btn";
+          removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+          removeBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            removeFile(index);
+          });
+
+          fileItem.appendChild(fileDetails);
+          fileItem.appendChild(removeBtn);
+          fileList.appendChild(fileItem);
+        });
+      }
+
+      function removeFile(index) {
+        selectedFiles.splice(index, 1);
+        updateFileList();
+
+        if (
+          uploadStatus === "error" &&
+          !selectedFiles.some((file) => file.error)
+        ) {
+          updateStatus(null);
+        }
+
+        updateProcessButton();
+      }
+
+      function updateStatus(status) {
+        uploadStatus = status;
+        errorStatus.classList.remove("show");
+        uploadingStatus.classList.remove("show");
+        successStatus.classList.remove("show");
+
+        if (status === "error") {
+          errorStatus.classList.add("show");
+        } else if (status === "uploading") {
+          uploadingStatus.classList.add("show");
+        } else if (status === "success") {
+          successStatus.classList.add("show");
+        }
+      }
+
+      function resetStatus() {
+        updateStatus(null);
+      }
+
+      function updateProcessButton() {
+        const validFiles = selectedFiles.filter((file) => !file.error);
+        processBtn.disabled =
+          validFiles.length === 0 ||
+          uploadStatus === "uploading" ||
+          uploadStatus === "success";
+      }
+
+      async function processUpload() {
+        const validFiles = selectedFiles
+          .filter((fileObj) => !fileObj.error)
+          .map((fileObj) => fileObj.file); // ✅ get actual File objects
+
+        if (validFiles.length === 0) {
+          console.warn("No valid PDF files selected.");
+          return;
+        }
+
+        const formData = new FormData();
+        validFiles.forEach((file) => {
+          formData.append("files", file);
+        });
+
+        try {
+          updateStatus("uploading");
+
+          const response = await fetch("/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+          if (data.status === "success") {
+            updateStatus("success");
+
+            setTimeout(() => {
+              closeModal();
+              addMessage(
+                `I've processed ${validFiles.length} new document${
+                  validFiles.length !== 1 ? "s" : ""
+                }. My knowledge has been updated!`,
+                "bot"
+              );
+            }, 1500);
+          } else {
+            updateStatus("error");
+          }
+        } catch (error) {
+          console.error("Upload error:", error);
+          updateStatus("error");
+        }
+      }
+    </script>
+  </body>
+</html>
