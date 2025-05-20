@@ -230,7 +230,7 @@ class Chatbot:
 			if "think" in answer:
 				answer = answer[answer.index("</think>")+8:].strip()
 			elif "assistant\n" in answer:
-				answer = answer[answer.rfind("assistant")+8:].strip()
+				answer = answer[answer.rfind("assistant")+9:].strip()
 			answers.append(answer)
 
 		return answers
